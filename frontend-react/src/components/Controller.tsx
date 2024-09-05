@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Title from "./Title";
 import axios from "axios";
 import RecordMessage from "./RecordMessage";
@@ -6,6 +6,7 @@ import RecordMessage from "./RecordMessage";
 const Controller = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
+  const [videoStarted, setVideoStarted] = useState(false);
 
   function createBlobURL(data: any) {
     const blob = new Blob([data], { type: "audio/mpeg" });
@@ -49,6 +50,7 @@ const Controller = () => {
             // Play audio
             setIsLoading(false);
             audio.play();
+            setVideoStarted(true);
           })
           .catch((err: any) => {
             console.error(err);
@@ -56,6 +58,14 @@ const Controller = () => {
           });
       });
   };
+
+  useEffect(() => {
+    // Start the video when the first API response is received
+    if (videoStarted) {
+      const video = document.getElementById("bg-video");
+      video.play();
+    }
+  }, [videoStarted]);
 
   return (
     <div className="h-screen overflow-y-hidden">
@@ -85,24 +95,17 @@ const Controller = () => {
                   >
                     {audio.sender}
                   </p>
-
                   {/* Message */}
-                  <audio
-                    src={audio.blobUrl}
-                    className="appearance-none"
-                    controls
-                  />
+                  <audio src={audio.blobUrl} className="appearance-none" controls />
                 </div>
               </div>
             );
           })}
-
           {messages.length == 0 && !isLoading && (
             <div className="text-center font-light italic mt-10">
               Send Rachel a message...
             </div>
           )}
-
           {isLoading && (
             <div className="text-center font-light italic mt-10 animate-pulse">
               Gimme a few seconds...
@@ -113,14 +116,10 @@ const Controller = () => {
         {/* Video */}
         <div className="fixed bottom-0 w-full py-6 border-t text-center bg-gradient-to-r from-sky-500 to-green-500">
           <div className="flex justify-center items-center w-full">
-            {/* <div>
-              <Video />
-            </div> */}
-
+            {/* <div>               <Video />             </div> */}
             <video id="bg-video" style={{ width: "100%" }}>
               <source src="ZoePerfect.mp4" type="video/mp4" />
             </video>
-
             {/* Recorder */}
             <div className="fixed bottom-0 w-full py-6 border-t text-center bg-gradient-to-r from-sky-500 to-green-500">
               <div className="flex justify-center items-center w-full">
