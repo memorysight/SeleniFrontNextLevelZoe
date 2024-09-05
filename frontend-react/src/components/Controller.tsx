@@ -7,6 +7,8 @@ const Controller = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [videoStarted, setVideoStarted] = useState(false);
+  const [videoEnded, setVideoEnded] = useState(false);
+  const [videoPlayCount, setVideoPlayCount] = useState(0);
 
   function createBlobURL(data: any) {
     const blob = new Blob([data], { type: "audio/mpeg" });
@@ -50,7 +52,19 @@ const Controller = () => {
             // Play audio
             setIsLoading(false);
             audio.play();
-            setVideoStarted(true);
+
+            // Start the video when the first API response is received
+            if (!videoStarted) {
+              const video = document.getElementById("bg-video");
+              video.play();
+              setVideoStarted(true);
+            } else {
+              // Increment the video play count and restart the video
+              setVideoPlayCount(videoPlayCount + 1);
+              const video = document.getElementById("bg-video");
+              video.currentTime = 0;
+              video.play();
+            }
           })
           .catch((err: any) => {
             console.error(err);
@@ -60,12 +74,12 @@ const Controller = () => {
   };
 
   useEffect(() => {
-    // Start the video when the first API response is received
-    if (videoStarted) {
+    // Stop the video when the last audio message finishes playing
+    if (videoStarted && videoEnded) {
       const video = document.getElementById("bg-video");
-      video.play();
+      video.pause();
     }
-  }, [videoStarted]);
+  }, [videoStarted, videoEnded]);
 
   return (
     <div className="h-screen overflow-y-hidden">
@@ -96,19 +110,26 @@ const Controller = () => {
                     {audio.sender}
                   </p>
                   {/* Message */}
-                  <audio src={audio.blobUrl} className="appearance-none" controls />
+                  <audio
+                    src={audio.blobUrl}
+                    className="appearance-none"
+                    controls
+                    onEnded={() => {
+                      setVideoEnded(true);
+                    }}
+                  />
                 </div>
               </div>
             );
           })}
           {messages.length == 0 && !isLoading && (
             <div className="text-center font-light italic mt-10">
-              Send Rachel a message...
+              Ask Zoe anything, she's here for you...
             </div>
           )}
           {isLoading && (
             <div className="text-center font-light italic mt-10 animate-pulse">
-              Gimme a few seconds...
+              Give her time, she's worth it!
             </div>
           )}
         </div>
